@@ -1,0 +1,3 @@
+from typing import Callable, Any
+
+def create_proxy(func: Callable[..., Any]) -> Any: ...

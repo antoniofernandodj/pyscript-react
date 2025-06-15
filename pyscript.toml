@@ -1,0 +1,7 @@
+# [tool.pyscript]
+# packages = []
+
+# [[tool.pyscript.fetch]]
+# files = ["main.py", "elements.py"]
+
+packages = ["main", "elements" ]
