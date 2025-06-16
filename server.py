@@ -5,15 +5,6 @@ from microdot import Microdot, Response  # type: ignore
 app = Microdot()
 
 
-@app.route('/')
-async def index(request):
-    with open('index.html', 'r') as f:
-        r = Response(f.read())
-    
-    r.headers['Content-Type'] = 'text/html'
-    return r
-
-
 @app.route('/<path:path>')
 async def static_files(request, path):
     if not os.path.isfile(path):
