@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from js import document, localStorage, PointerEvent, location
+from js import document, localStorage, PointerEvent, location  # type: ignore
 
 from elements import *
 from state import *
@@ -100,7 +100,7 @@ class App(Component):
                 content = f.read()
 
             print(os.listdir())
-            
+
             print({'content': content})
 
 
