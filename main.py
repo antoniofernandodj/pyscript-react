@@ -41,16 +41,12 @@ if __name__ == "__main__":
     if not root:
         raise RuntimeError('Node not found!')
 
-    router = Router()
-    router.add_route("/", Home)
-    router.add_route("/sobre", Sobre)
-    router.set_not_found(NotFound)
-    router.exec(root)
+    router = Router(
+        routes=[
+            {"path": "/", "component": Home},
+            {"path": "/sobre", "component": Sobre}
+        ],
+        not_found=NotFound
+    )
 
-    # app.apply_styles({
-    #     "backgroundColor": "darkred",
-    #     "color": "white",
-    #     "padding": "12px",
-    #     "borderRadius": "5px",
-    #     "fontWeight": "bold",
-    # })
+    router.exec(root)

@@ -8,7 +8,7 @@ from elements import *
 from state import *
 from logger import *
 from component import *
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Type
 if TYPE_CHECKING:
     from js import JSObject
 
@@ -24,9 +24,9 @@ class NotFound(Component):
 
 class Router:
 
-    def __init__(self):
+    def __init__(self, routes: List[dict], not_found: Optional[Type[Component]]=None):
         self.routes = {}  # ex: {'/home': HomeComponent}
-        self.not_found = NotFound
+        self.not_found = not_found or NotFound
         self.outlet = div()
         self._on_pop_state = create_proxy(self._on_path_change)
         self._on_link_click = create_proxy(self._handle_link_click)
@@ -35,6 +35,10 @@ class Router:
         document.addEventListener("click", self._on_link_click)
 
         self._on_path_change()
+
+        for route_dict in routes:
+            self.add_route(route_dict['path'], route_dict['component'])
+
 
     def set_not_found(self, component):
         if not issubclass(component, Component):

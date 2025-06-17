@@ -1,4 +1,4 @@
-from js import setInterval, clearInterval, Function, document, customElements, HTMLElement, Object
+from js import setInterval, clearInterval, Function, document, customElements
 from pyodide.ffi import create_proxy
 
 
@@ -24,7 +24,6 @@ RouteLink = Function.new(js_code)()
 
 # Registra o custom element
 customElements.define("route-link", RouteLink)
-
 
 
 # Elementos HTML declarativos
