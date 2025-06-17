@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Generic, TypeVar
 
 
@@ -11,6 +12,9 @@ class State(Generic[T]):
     def __init__(self, initial_value: T):
         self.subscribers = []
         self.value = initial_value
+
+    def get_value(self):
+        return deepcopy(self.value)
 
     def subscribe(self, fn):
         self.subscribers.append(fn)
@@ -41,7 +45,7 @@ def create_shared_state(initial_value):
 
 
 
-def use_state(parent=None, initial_value=None):
+def use_state(parent, initial_value):
     """
     Se parent for None, cria estado isolado (ex: para lógica não ligada a componente)
     Se parent for componente, associa re-render automático.
@@ -56,9 +60,8 @@ def use_state(parent=None, initial_value=None):
             state.value = fn_or_value
         state.notify()
 
-    if parent:
-        # Registra re-render automático do componente
-        state.subscribe(parent._render)
+
+    state.subscribe(parent._render)
     
     return state, set_state
 
