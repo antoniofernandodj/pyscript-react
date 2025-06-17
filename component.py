@@ -9,6 +9,15 @@ class Component:
         self.init()
         self._render()
 
+    def run(self, root):
+        if not root:
+            raise RuntimeError('Node not found!')
+
+        root.innerHTML = ""
+
+        root.appendChild(self())
+
+
     def init(self):
         pass
 
