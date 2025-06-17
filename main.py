@@ -85,35 +85,12 @@ class TarefaRepository:
             self.sync_with_storage()
 
 
-class TodoApp(Component):
-
-    def init(self):
-        if not os.path.exists("tarefas.db"):
-            if (db_base64 := localStorage.getItem("tarefas.db")) is not None:
-                with open("tarefas.db", "wb") as f:
-                    f.write(base64.b64decode(db_base64))
-        self.repo = TarefaRepository("tarefas.db", localStorage)
-        self.nova_tarefa, self.set_nova_tarefa = use_state(self, '')
-        self.tarefas, self.set_tarefas = use_state(self, self.repo.list_all())
-
-        
-        self.nova_tarefa_input = input(
-            value=self.nova_tarefa.get_value(),
-            placeholder="Nova tarefa...",
-            on_input=self.on_nova_tarefa_input,
-            style=to_inline_style({"marginRight": "8px"}),
-            id='nova-tarefa'
-        )
-    
-    def on_nova_tarefa_input(self, e):
-        self.set_nova_tarefa(e.target.value)
-
-    def adicionar(self, e):
-        e.preventDefault()
-        if self.nova_tarefa.get_value().strip():
-            self.repo.add(Tarefa(descricao=self.nova_tarefa.get_value().strip()))
-            self.set_nova_tarefa('')
-            self.set_tarefas(self.repo.list_all())
+class TarefaComponent(Component):
+    def __init__(self, tarefa, repo, set_tarefas):
+        super().__init__()
+        self.tarefa = tarefa
+        self.repo = repo
+        self.set_tarefas = set_tarefas
 
     def marcar_concluida(self, tarefa_id: str):
         self.repo.toggle_feita(tarefa_id)
@@ -124,58 +101,85 @@ class TodoApp(Component):
         self.set_tarefas(self.repo.list_all())
 
     def render(self):
-
-        """
-        O motivo pelo qual o input não está mantendo o foco é
-        provavelmente porque o render está recriando o DOM inteiro toda
-        vez que o estado muda (como ao adicionar uma tarefa).
-        Isso faz com que o campo de entrada seja refeito do zero e perca o foco.
-        """
-        print('rendering...')
-
-        try:
-            return div(
-                h2("📋 Todo List"),
-                form(
-                    self.nova_tarefa_input,
-                    input("Adicionar", type='submit'),
-                    ul(
-                        *[
-                            li(
-                                input(
-                                    id=f'tarefa-{tarefa.id}',
-                                    type="checkbox", checked='true',
-                                    on_change=lambda e: self.marcar_concluida(tarefa.id),
-                                ) if tarefa.feita else input(
-                                    id=f'tarefa-{tarefa.id}',
-                                    type="checkbox",
-                                    on_change=lambda e: self.marcar_concluida(tarefa.id),
-                                ),
-                                span(
-                                    tarefa.descricao,
-                                    style=to_inline_style({
-                                        "text-decoration": "line-through" if tarefa.feita else "none"
-                                    })
-                                ),
-                                button(
-                                    "❌",
-                                    on_click=lambda e: self.apagar(tarefa.id),
-                                    style='margin: "0px 0px 0px 8px;'
-                                )
-
-                            )
-                            for tarefa in self.tarefas.get_value()
-                        ]
-                    ),
-                    id='form',
-                    on_submit=self.adicionar,
+        # Cada tarefa recebe uma chave única para otimização
+        return li(
+            key=self.tarefa.id,
+            children=[
+                input(
+                    type="checkbox",
+                    checked=self.tarefa.feita,
+                    on_change=lambda e: self.marcar_concluida(self.tarefa.id)
+                ),
+                span(
+                    self.tarefa.descricao,
+                    style=to_inline_style({
+                        "textDecoration": "line-through" if self.tarefa.feita else "none"
+                    })
+                ),
+                button(
+                    "❌",
+                    on_click=lambda e: self.apagar(self.tarefa.id),
+                    style=to_inline_style({"marginLeft": "8px"})
                 )
-            )
-        except Exception as e:
-            traceback.print_exc()
-            print(e)
-            return div(f"deu não {e}")
+            ]
+        )
 
+
+class TodoApp(Component):
+    def init(self):
+        # Inicialização do estado (igual ao anterior)
+        if not os.path.exists("tarefas.db"):
+            if (db_base64 := localStorage.getItem("tarefas.db")) is not None:
+                with open("tarefas.db", "wb") as f:
+                    f.write(base64.b64decode(db_base64))
+        self.repo = TarefaRepository("tarefas.db", localStorage)
+        # self.tarefas = self.repo.list_all()
+        self.nova_tarefa = ''
+        self.tarefas, self.set_tarefas = use_state(self, self.repo.list_all())
+
+    def render(self):
+        return div(
+            h2("📋 Todo List"),
+            div(
+                input(
+                    value=self.nova_tarefa,
+                    placeholder="Nova tarefa...",
+                    on_input=self.on_nova_tarefa_input,
+                    style=to_inline_style({"marginRight": "8px"}),
+                    id='nova-tarefa'
+                ),
+                button("Adicionar", on_click=self.adicionar),
+                id='input-container'
+            ),
+            ul(
+                *[
+                    TarefaComponent(
+                        tarefa,
+                        self.repo,
+                        self.set_tarefas
+                    )
+                    for tarefa in self.tarefas.get_value()
+                ],
+                id='tarefas-list'
+            )
+        )
+    
+
+
+    def apagar(self, tarefa_id: str):
+        self.repo.delete(tarefa_id)
+        self.set_tarefas(self.repo.list_all())
+    
+    def on_nova_tarefa_input(self, e):
+        self.nova_tarefa = e.target.value
+        self._render()  # Aciona a reconciliação
+    
+    def adicionar(self, _=None):
+        if self.nova_tarefa.strip():
+            self.repo.add(Tarefa(descricao=self.nova_tarefa.strip()))
+            self.set_tarefas(self.repo.list_all())
+            self.nova_tarefa = ''
+            self._render()
 
 
 async def entrypoint():
