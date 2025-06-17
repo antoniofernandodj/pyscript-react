@@ -1,10 +1,10 @@
 {
   "interpreter": "0.23.4",
   "files": {
-    "./elements.py": "./elements.py",
-    "./state.py": "./state.py",
-    "./logger.py": "./logger.py",
-    "./component.py": "./component.py"
+    "elements.py": "elements.py",
+    "state.py": "state.py",
+    "logger.py": "logger.py",
+    "component.py": "component.py"
   },
   "packages": []
 }
