@@ -144,7 +144,7 @@ class TodoApp(Component):
 
 
 async def entrypoint():
-    import micropip
+    import micropip  # type: ignore
     await micropip.install("sqlite3")
 
     app = TodoApp()

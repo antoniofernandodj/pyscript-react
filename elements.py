@@ -1,8 +1,29 @@
-from js import setInterval, clearInterval
-from js import document # type: ignore
+from js import setInterval, clearInterval, Function, document, customElements, HTMLElement, Object
 from pyodide.ffi import create_proxy
 
-from component import Component
+
+
+# Define o corpo do componente em JavaScript (como string)
+js_code = """
+return class RouteLink extends HTMLElement {
+    connectedCallback() {
+        const a = document.createElement("a");
+        a.textContent = this.textContent;
+        a.href = this.getAttribute("to") || "#";
+        a.style.color = "blue";
+        a.style.textDecoration = "underline";
+        a.style.cursor = "pointer";
+        this.innerHTML = "";
+        this.appendChild(a);
+    }
+};
+"""
+
+# Cria uma classe JS com Function.new
+RouteLink = Function.new(js_code)()
+
+# Registra o custom element
+customElements.define("route-link", RouteLink)
 
 
 
@@ -84,6 +105,7 @@ def label(*children, **attrs): return el("label", *children, **attrs)
 def legend(*children, **attrs): return el("legend", *children, **attrs)
 def li(*children, **attrs): return el("li", *children, **attrs)
 def link(*children, **attrs): return el("link", *children, **attrs)
+def route_link(*children, **attrs): return el("route-link", *children, **attrs)
 def main(*children, **attrs): return el("main", *children, **attrs)
 def map(*children, **attrs): return el("map", *children, **attrs)
 def mark(*children, **attrs): return el("mark", *children, **attrs)
